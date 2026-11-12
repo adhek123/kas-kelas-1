@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kas Kelas 1</title>
+<style>
+body{font-family:Arial;background:#f1f5f9;margin:0;padding:16px;color:#243047}
+header{background:#287a65;color:white;padding:22px;border-radius:15px;text-align:center}
+.card{background:white;padding:16px;margin:14px 0;border-radius:13px;box-shadow:0 2px 8px #ddd}
+h2{font-size:18px}
+.total{font-size:25px;font-weight:bold;color:#287a65}
+input,select,button{width:100%;padding:12px;margin:7px 0;box-sizing:border-box;border-radius:8px;border:1px solid #ccc;font-size:16px}
+button{background:#287a65;color:white;border:0;font-weight:bold}
+.delete{background:#c0392b;padding:7px;width:auto}
+li{margin:10px 0;padding:8px;border-bottom:1px solid #ddd}
+</style>
+</head>
+<body>
+<header>
+<h2>🌸 KAS KELAS 1 🌸</h2>
+<p>Catatan Keuangan Kelas</p>
+<p>Jumlah Siswa: 14 Anak</p>
+</header>
+
+<div class="card">
+<h2>💰 Ringkasan Kas</h2>
+<p>Total Uang Masuk</p>
+<div class="total" id="total">Rp0</div>
+<p id="jumlah">Jumlah pembayaran: 0</p>
+</div>
+
+<div class="card">
+<h2>📝 Catat Pembayaran</h2>
+<label>Nama Siswa</label>
+<select id="siswa"></select>
+<label>Jumlah Pembayaran (Rp)</label>
+<input id="nominal" type="number" placeholder="Contoh: 5000" min="1">
+<label>Tanggal Pembayaran</label>
+<input id="tanggal" type="date">
+<button onclick="simpan()">Simpan Pembayaran</button>
+</div>
+
+<div class="card">
+<h2>👧👦 Rekap 14 Siswa</h2>
+<ul id="rekap"></ul>
+</div>
+
+<div class="card">
+<h2>📖 Riwayat Pembayaran</h2>
+<ul id="riwayat"></ul>
+</div>
+
+<script>
+const nama=Array.from({length:14},(_,i)=>"Siswa "+(i+1));
+let data=JSON.parse(localStorage.getItem("kasKelas1")||"[]");
+
+const format=n=>"Rp"+Number(n).toLocaleString("id-ID");
+
+nama.forEach((n,i)=>{
+let o=document.createElement("option");
+o.value=i;
+o.textContent=n;
+document.getElementById("siswa").appendChild(o);
+});
+
+document.getElementById("tanggal").value=
+new Date().toLocaleDateString("en-CA");
+
+function simpan(){
+let siswa=Number(document.getElementById("siswa").value);
+let nominal=Number(document.getElementById("nominal").value);
+let tanggal=document.getElementById("tanggal").value;
+
+if(!nominal||nominal<=0||!tanggal){
+alert("Isi jumlah dan tanggal pembayaran!");
+return;
+}
+
+data.push({siswa,nominal,tanggal});
+localStorage.setItem("kasKelas1",JSON.stringify(data));
+document.getElementById("nominal").value="";
+tampil();
+alert("Pembayaran berhasil disimpan!");
+}
+
+function hapus(i){
+if(confirm("Hapus catatan pembayaran ini?")){
+data.splice(i,1);
+localStorage.setItem("kasKelas1",JSON.stringify(data));
+tampil();
+}
+}
+
+function tampil(){
+let total=data.reduce((a,b)=>a+b.nominal,0);
+document.getElementById("total").textContent=format(total);
+document.getElementById("jumlah").textContent=
+"Jumlah pembayaran: "+data.length;
+
+let rekap=document.getElementById("rekap");
+rekap.innerHTML="";
+nama.forEach((n,i)=>{
+let jumlah=data.filter(x=>x.siswa===i)
+.reduce((a,b)=>a+b.nominal,0);
+let li=document.createElement("li");
+li.textContent=n+" : "+format(jumlah);
+rekap.appendChild(li);
+});
+
+let riwayat=document.getElementById("riwayat");
+riwayat.innerHTML="";
+data.forEach((d,i)=>{
+let li=document.createElement("li");
+li.textContent=nama[d.siswa]+" - "+format(d.nominal)+" - "+d.tanggal+" ";
+let btn=document.createElement("button");
+btn.textContent="Hapus";
+btn.className="delete";
+btn.onclick=()=>hapus(i);
+li.appendChild(btn);
+riwayat.appendChild(li);
+});
+}
+tampil();
+</script>
+</body>
+</html>
