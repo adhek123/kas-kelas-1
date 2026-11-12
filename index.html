@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -5,140 +6,273 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Kas Kelas 1</title>
 <style>
-body{font-family:Arial;background:#f1f5f9;margin:0;padding:16px;color:#243047}
-header{background:#287a65;color:white;padding:22px;border-radius:15px;text-align:center}
-.card{background:white;padding:16px;margin:14px 0;border-radius:13px;box-shadow:0 2px 8px #ddd}
-h2{font-size:18px}
-.total{font-size:25px;font-weight:bold;color:#287a65}
-input,select,button{width:100%;padding:12px;margin:7px 0;box-sizing:border-box;border-radius:8px;border:1px solid #ccc;font-size:16px}
-button{background:#287a65;color:white;border:0;font-weight:bold}
-.delete{background:#c0392b;padding:7px;width:auto}
-li{margin:10px 0;padding:8px;border-bottom:1px solid #ddd}
+*{box-sizing:border-box}
+body{margin:0;padding:15px;background:#f1f5f5;color:#263b38;font-family:Arial,sans-serif}
+header{background:#287a65;color:white;text-align:center;padding:22px;border-radius:17px}
+header h1{margin:0 0 8px;font-size:25px}
+.card{background:white;padding:16px;margin:14px 0;border-radius:14px;box-shadow:0 2px 9px #0001}
+h2{font-size:18px;margin-top:0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:#e9f5ef;padding:13px;border-radius:10px}
+.stat small{display:block;color:#52645e}
+.stat strong{display:block;font-size:20px;color:#287a65;margin-top:7px;overflow-wrap:anywhere}
+input,select,button{width:100%;padding:12px;margin:6px 0;border:1px solid #ccd7d2;border-radius:9px;font-size:15px}
+button{background:#287a65;color:white;border:0;font-weight:bold;cursor:pointer}
+button.secondary{background:#e7efec;color:#245b4d}
+button.danger{background:#b84242}
+label{font-size:14px;font-weight:bold}
+.months{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:10px 0}
+.month{padding:9px;background:#f1f6f3;border-radius:8px;font-size:14px}
+.month input{width:auto;margin-right:6px}
+.month:has(input:disabled){opacity:.5}
+ul{padding-left:20px}
+li{margin:10px 0;overflow-wrap:anywhere}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:9px 5px;text-align:left;border-bottom:1px solid #e5eae7}
+.tablewrap{overflow-x:auto}
+.paid{color:#16834f;font-weight:bold}
+.unpaid{color:#bd4545;font-weight:bold}
+.muted{color:#718079;font-size:13px}
+.actions{display:flex;gap:6px;flex-wrap:wrap}
+.actions button{width:auto;flex:1}
 </style>
 </head>
 <body>
+
 <header>
-<h2>🌸 KAS KELAS 1 🌸</h2>
-<p>Catatan Keuangan Kelas</p>
-<p>Jumlah Siswa: 14 Anak</p>
+<h1>🌸 KAS KELAS 1 🌸</h1>
+<div>Administrasi Kas Kelas</div>
+<p>Iuran Rp5.000 / siswa / bulan</p>
+<p>Periode dimulai November 2026</p>
 </header>
 
 <div class="card">
-<h2>💰 Ringkasan Kas</h2>
-<p>Total Uang Masuk</p>
-<div class="total" id="total">Rp0</div>
-<p id="jumlah">Jumlah pembayaran: 0</p>
+<h2>💰 Ringkasan Keuangan</h2>
+<div class="grid">
+<div class="stat"><small>Total pemasukan</small><strong id="income">Rp0</strong></div>
+<div class="stat"><small>Total pengeluaran</small><strong id="expense">Rp0</strong></div>
+<div class="stat"><small>Saldo kas</small><strong id="balance">Rp0</strong></div>
+<div class="stat"><small>Target per bulan</small><strong>Rp70.000</strong></div>
+</div>
 </div>
 
 <div class="card">
-<h2>📝 Catat Pembayaran</h2>
-<label>Nama Siswa</label>
-<select id="siswa"></select>
-<label>Jumlah Pembayaran (Rp)</label>
-<input id="nominal" type="number" placeholder="Contoh: 5000" min="1">
-<label>Tanggal Pembayaran</label>
-<input id="tanggal" type="date">
-<button onclick="simpan()">Simpan Pembayaran</button>
+<h2>📝 Catat Pembayaran Kas</h2>
+<label>Nama siswa</label>
+<select id="student"></select>
+
+<label>Tanggal pembayaran</label>
+<input type="date" id="payDate">
+
+<label>Pilih bulan yang dibayar</label>
+<div class="muted">Boleh memilih beberapa bulan sekaligus. Setiap bulan Rp5.000.</div>
+<div class="months" id="monthChoices"></div>
+
+<p id="payTotal"><b>Total: Rp0</b></p>
+<button onclick="savePayment()">Simpan Pembayaran</button>
 </div>
 
 <div class="card">
-<h2>👧👦 Rekap 14 Siswa</h2>
-<ul id="rekap"></ul>
+<h2>👧👦 Status Pembayaran Siswa</h2>
+<label>Lihat status bulan</label>
+<select id="statusMonth" onchange="renderStatus()"></select>
+<div class="tablewrap">
+<table>
+<thead><tr><th>Nama</th><th>Status</th></tr></thead>
+<tbody id="statusRows"></tbody>
+</table>
+</div>
 </div>
 
 <div class="card">
-<h2>📖 Riwayat Pembayaran</h2>
-<ul id="riwayat"></ul>
+<h2>🧾 Catat Pengeluaran</h2>
+<label>Tanggal</label>
+<input type="date" id="expenseDate">
+<label>Keperluan</label>
+<input id="expenseNote" placeholder="Contoh: membeli alat kebersihan">
+<label>Jumlah pengeluaran (Rp)</label>
+<input type="number" id="expenseAmount" min="1" placeholder="Contoh: 20000">
+<button onclick="saveExpense()">Simpan Pengeluaran</button>
+</div>
+
+<div class="card">
+<h2>📚 Riwayat Pembayaran</h2>
+<ul id="paymentHistory"></ul>
+</div>
+
+<div class="card">
+<h2>📒 Riwayat Pengeluaran</h2>
+<ul id="expenseHistory"></ul>
+</div>
+
+<div class="card">
+<h2>📊 Rekap per Siswa</h2>
+<div class="tablewrap">
+<table>
+<thead><tr><th>Nama</th><th>Bulan lunas</th><th>Total</th></tr></thead>
+<tbody id="studentSummary"></tbody>
+</table>
+</div>
+</div>
+
+<div class="card">
+<h2>📅 Laporan Bulanan</h2>
+<label>Pilih bulan</label>
+<select id="reportMonth" onchange="renderReport()"></select>
+<div id="report"></div>
+</div>
+
+<div class="card">
+<h2>💾 Data Aplikasi</h2>
+<p class="muted">Data tersimpan pada browser HP ini. Jangan hapus data browser sebelum membuat cadangan.</p>
+<button class="secondary" onclick="backup()">Unduh Cadangan Data</button>
+<input type="file" id="restoreFile" accept=".json" onchange="restore(event)">
+<button class="secondary" onclick="document.getElementById('restoreFile').click()">Pulihkan Cadangan</button>
 </div>
 
 <script>
-
-const nama = [
-  "Aruna",
-  "Anung",
-  "Damar",
-  "Dian",
-  "Dylan",
-  "Euko",
-  "Hurin",
-  "Iqbal",
-  "Jeni",
-  "Karin",
-  "Khayra",
-  "Lyly",
-  "Maureene",
-  "Maleka"
-];
-  ({length:14},(_,i)=>"Siswa "+(i+1));
-let data=JSON.parse(localStorage.getItem("kasKelas1")||"[]");
-
-const format=n=>"Rp"+Number(n).toLocaleString("id-ID");
-
-nama.forEach((n,i)=>{
-let o=document.createElement("option");
-o.value=i;
-o.textContent=n;
-document.getElementById("siswa").appendChild(o);
-});
-
-document.getElementById("tanggal").value=
-new Date().toLocaleDateString("en-CA");
-
-function simpan(){
-let siswa=Number(document.getElementById("siswa").value);
-let nominal=Number(document.getElementById("nominal").value);
-let tanggal=document.getElementById("tanggal").value;
-
-if(!nominal||nominal<=0||!tanggal){
-alert("Isi jumlah dan tanggal pembayaran!");
-return;
+const STUDENTS=["Aruna","Anung","Damar","Dian","Dylan","Euko","Hurin","Iqbal","Jeni","Karin","Khayra","Lyly","Maureene","Maleka"];
+const FEE=5000;
+const KEY="kasKelas1_v2";
+const months=[];
+for(let y=2026;y<=2028;y++){
+ for(let m=0;m<12;m++){
+  if(y===2026&&m<10)continue;
+  if(y===2028&&m>0)continue;
+  months.push(y+"-"+String(m+1).padStart(2,"0"));
+ }
 }
-
-data.push({siswa,nominal,tanggal});
-localStorage.setItem("kasKelas1",JSON.stringify(data));
-document.getElementById("nominal").value="";
-tampil();
-alert("Pembayaran berhasil disimpan!");
+const monthName=k=>new Date(k+"-01T00:00:00").toLocaleDateString("id-ID",{month:"long",year:"numeric"});
+const money=n=>"Rp"+Number(n).toLocaleString("id-ID");
+const today=()=>new Date().toLocaleDateString("en-CA");
+let db=JSON.parse(localStorage.getItem(KEY)||'{"payments":[],"expenses":[]}');
+if(!db.payments)db.payments=[];
+if(!db.expenses)db.expenses=[];
+const $=id=>document.getElementById(id);
+function save(){localStorage.setItem(KEY,JSON.stringify(db));render();}
+function fillSelect(id,withAll=false){
+ let el=$(id);el.innerHTML="";
+ months.forEach(m=>{
+  let o=document.createElement("option");o.value=m;o.textContent=monthName(m);el.appendChild(o);
+ });
+ if(withAll){let o=document.createElement("option");o.value="";o.textContent="Semua bulan";el.prepend(o);}
 }
-
-function hapus(i){
-if(confirm("Hapus catatan pembayaran ini?")){
-data.splice(i,1);
-localStorage.setItem("kasKelas1",JSON.stringify(data));
-tampil();
+function paidMonths(student){
+ return db.payments.filter(p=>p.student===student).flatMap(p=>p.months);
 }
+function init(){
+ STUDENTS.forEach((s,i)=>{let o=document.createElement("option");o.value=s;o.textContent=s;$("student").appendChild(o);});
+ fillSelect("statusMonth");fillSelect("reportMonth");
+ $("statusMonth").value="2026-11";$("reportMonth").value="2026-11";
+ $("payDate").value=today();$("expenseDate").value=today();
+ $("student").addEventListener("change",renderChoices);
+ renderChoices();render();
 }
-
-function tampil(){
-let total=data.reduce((a,b)=>a+b.nominal,0);
-document.getElementById("total").textContent=format(total);
-document.getElementById("jumlah").textContent=
-"Jumlah pembayaran: "+data.length;
-
-let rekap=document.getElementById("rekap");
-rekap.innerHTML="";
-nama.forEach((n,i)=>{
-let jumlah=data.filter(x=>x.siswa===i)
-.reduce((a,b)=>a+b.nominal,0);
-let li=document.createElement("li");
-li.textContent=n+" : "+format(jumlah);
-rekap.appendChild(li);
-});
-
-let riwayat=document.getElementById("riwayat");
-riwayat.innerHTML="";
-data.forEach((d,i)=>{
-let li=document.createElement("li");
-li.textContent=nama[d.siswa]+" - "+format(d.nominal)+" - "+d.tanggal+" ";
-let btn=document.createElement("button");
-btn.textContent="Hapus";
-btn.className="delete";
-btn.onclick=()=>hapus(i);
-li.appendChild(btn);
-riwayat.appendChild(li);
-});
+function renderChoices(){
+ let s=$("student").value,paid=paidMonths(s),wrap=$("monthChoices");
+ wrap.innerHTML="";
+ months.forEach(m=>{
+  let label=document.createElement("label");label.className="month";
+  let cb=document.createElement("input");cb.type="checkbox";cb.value=m;
+  cb.disabled=paid.includes(m);
+  cb.addEventListener("change",updatePayTotal);
+  label.append(cb,document.createTextNode(monthName(m)+(paid.includes(m)?" ✓":"")));
+  wrap.appendChild(label);
+ });
+ updatePayTotal();
 }
-tampil();
+function updatePayTotal(){
+ let n=[...$("monthChoices").querySelectorAll("input:checked")].length;
+ $("payTotal").innerHTML="<b>Total: "+money(n*FEE)+" ("+n+" bulan)</b>";
+}
+function savePayment(){
+ let s=$("student").value;
+ let selected=[...$("monthChoices").querySelectorAll("input:checked")].map(x=>x.value);
+ let date=$("payDate").value;
+ if(!date||!selected.length){alert("Pilih tanggal dan minimal satu bulan.");return;}
+ let paid=paidMonths(s);
+ if(selected.some(m=>paid.includes(m))){alert("Ada bulan yang sudah dibayar.");return;}
+ db.payments.push({id:Date.now(),student:s,months:selected,date,amount:selected.length*FEE});
+ save();renderChoices();
+ alert("Pembayaran "+s+" berhasil dicatat!");
+}
+function saveExpense(){
+ let date=$("expenseDate").value,note=$("expenseNote").value.trim(),amount=Number($("expenseAmount").value);
+ if(!date||!note||amount<=0){alert("Lengkapi tanggal, keperluan, dan jumlah.");return;}
+ db.expenses.push({id:Date.now(),date,note,amount});
+ $("expenseNote").value="";$("expenseAmount").value="";
+ save();alert("Pengeluaran berhasil dicatat.");
+}
+function renderStatus(){
+ let m=$("statusMonth").value;
+ $("statusRows").innerHTML="";
+ STUDENTS.forEach(s=>{
+  let paid=paidMonths(s).includes(m);
+  let tr=document.createElement("tr");
+  let a=document.createElement("td");a.textContent=s;
+  let b=document.createElement("td");b.textContent=paid?"LUNAS":"BELUM BAYAR";b.className=paid?"paid":"unpaid";
+  tr.append(a,b);$("statusRows").appendChild(tr);
+ });
+}
+function renderHistory(){
+ $("paymentHistory").innerHTML="";
+ [...db.payments].reverse().forEach(p=>{
+  let li=document.createElement("li");
+  li.textContent=p.date+" — "+p.student+" — "+p.months.map(monthName).join(", ")+" — "+money(p.amount);
+  let btn=document.createElement("button");btn.className="danger";btn.textContent="Hapus";
+  btn.onclick=()=>{if(confirm("Hapus transaksi ini? Status bulan terkait akan kembali belum dibayar.")){db.payments=db.payments.filter(x=>x.id!==p.id);save();renderChoices();}};
+  li.appendChild(btn);$("paymentHistory").appendChild(li);
+ });
+ $("expenseHistory").innerHTML="";
+ [...db.expenses].reverse().forEach(p=>{
+  let li=document.createElement("li");li.textContent=p.date+" — "+p.note+" — "+money(p.amount);
+  let btn=document.createElement("button");btn.className="danger";btn.textContent="Hapus";
+  btn.onclick=()=>{if(confirm("Hapus pengeluaran ini?")){db.expenses=db.expenses.filter(x=>x.id!==p.id);save();}};
+  li.appendChild(btn);$("expenseHistory").appendChild(li);
+ });
+}
+function renderSummary(){
+ $("studentSummary").innerHTML="";
+ STUDENTS.forEach(s=>{
+  let ms=paidMonths(s);
+  let tr=document.createElement("tr");
+  [s,ms.length+" bulan",money(ms.length*FEE)].forEach(v=>{let td=document.createElement("td");td.textContent=v;tr.appendChild(td);});
+  $("studentSummary").appendChild(tr);
+ });
+}
+function renderReport(){
+ let m=$("reportMonth").value;
+ let rows=STUDENTS.map(s=>({s,paid:paidMonths(s).includes(m)}));
+ let count=rows.filter(x=>x.paid).length;
+ $("report").innerHTML="<p>Bulan: <b>"+monthName(m)+"</b></p><p>Sudah bayar: <b>"+count+" siswa</b></p><p>Belum bayar: <b>"+(14-count)+" siswa</b></p><p>Pemasukan bulan ini: <b>"+money(count*FEE)+"</b></p><p>Target: <b>"+money(14*FEE)+"</b></p>";
+}
+function render(){
+ let income=db.payments.reduce((a,p)=>a+p.amount,0);
+ let expense=db.expenses.reduce((a,p)=>a+p.amount,0);
+ $("income").textContent=money(income);
+ $("expense").textContent=money(expense);
+ $("balance").textContent=money(income-expense);
+ renderStatus();renderHistory();renderSummary();renderReport();
+}
+function backup(){
+ let blob=new Blob([JSON.stringify(db,null,2)],{type:"application/json"});
+ let a=document.createElement("a");a.href=URL.createObjectURL(blob);
+ a.download="cadangan-kas-kelas-1.json";a.click();URL.revokeObjectURL(a.href);
+}
+function restore(e){
+ let file=e.target.files[0];if(!file)return;
+ let r=new FileReader();
+ r.onload=()=>{try{
+  let x=JSON.parse(r.result);
+  if(!Array.isArray(x.payments)||!Array.isArray(x.expenses))throw Error();
+  if(confirm("Ganti data saat ini dengan cadangan?")){
+   db=x;save();renderChoices();alert("Cadangan berhasil dipulihkan.");
+  }
+ }catch(err){alert("File cadangan tidak valid.");}};
+ r.readAsText(file);
+}
+init();
 </script>
 </body>
-</html>
+  </html>
+  
